@@ -33,6 +33,7 @@ type ApplicationSpec struct {
 	Image          string              `json:"image,omitempty"`
 	Replicas       int                 `json:"replicas,omitempty"`
 	Port           int                 `json:"port,omitempty"`
+	RestartTime    string              `json:"restartTime,omitempty"`
 }
 
 // ApplicationStatus defines the observed state of Application

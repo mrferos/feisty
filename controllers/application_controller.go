@@ -32,7 +32,9 @@ import (
 )
 
 var (
-	defaultExposedPort = int32(80)
+	feistyAnnotationPrefix         = "paas.feisty.dev/"
+	defaultExposedPort             = int32(80)
+	restartDeploymentAnnotationKey = feistyAnnotationPrefix + "restartTime"
 )
 
 // ApplicationReconciler reconciles a Application object
@@ -86,6 +88,14 @@ func (r *ApplicationReconciler) upsertDeployment(app feistyv1alpha1.Application,
 				},
 			},
 		}
+	}
+
+	if app.Spec.RestartTime != "" {
+		if deployment.Spec.Template.ObjectMeta.Annotations == nil {
+			deployment.Spec.Template.ObjectMeta.Annotations = map[string]string{}
+		}
+
+		deployment.Spec.Template.ObjectMeta.Annotations[restartDeploymentAnnotationKey] = app.Spec.RestartTime
 	}
 
 	deployment.Spec.Replicas = &replicas

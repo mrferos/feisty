@@ -4,6 +4,8 @@ metadata:
   name: application-sample
 spec:
   routingEnabled: true
+  replicas: 2
+  restartTime: AGAIN
   image: nginxdemos/hello:plain-text
   port: 80
   domains:
