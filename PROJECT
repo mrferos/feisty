@@ -1,0 +1,7 @@
+domain: paas.fesity.dev
+repo: github.com/mrferos/feisty
+resources:
+- group: feisty
+  kind: Application
+  version: v1alpha1
+version: "2"
