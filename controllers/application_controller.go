@@ -18,16 +18,21 @@ package controllers
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	v1 "k8s.io/api/apps/v1"
 	v12 "k8s.io/api/core/v1"
+	"k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	feistyv1alpha1 "github.com/mrferos/feisty/api/v1alpha1"
+)
+
+var (
+	defaultExposedPort = int32(80)
 )
 
 // ApplicationReconciler reconciles a Application object
@@ -37,8 +42,176 @@ type ApplicationReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=feisty.paas.fesity.dev,resources=applications,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=feisty.paas.fesity.dev,resources=applications/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=feisty.paas.feisty.dev,resources=applications,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=feisty.paas.feisty.dev,resources=applications/status,verbs=get;update;patch
+
+func getAppLabels(app feistyv1alpha1.Application) map[string]string {
+	return map[string]string{
+		"app": app.Name,
+	}
+}
+
+func (r *ApplicationReconciler) upsertDeployment(app feistyv1alpha1.Application, req ctrl.Request, ctx context.Context) (ctrl.Result, error) {
+	log := r.Log.WithValues("application", req.NamespacedName)
+	appLabels := getAppLabels(app)
+
+	replicas := int32(0)
+	if app.Spec.Replicas > 0 {
+		replicas = int32(app.Spec.Replicas)
+	}
+
+	doCreate := false
+	var deployment v1.Deployment
+	if err := r.Get(ctx, req.NamespacedName, &deployment); err != nil {
+		doCreate = true
+		deployment = v1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      app.Name,
+				Namespace: app.Namespace,
+			},
+			Spec: v1.DeploymentSpec{
+				Selector: &metav1.LabelSelector{
+					MatchLabels: appLabels,
+				},
+				Template: v12.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:   app.Name,
+						Labels: appLabels,
+					},
+					Spec: v12.PodSpec{
+						Containers: []v12.Container{{
+							Name: app.Name,
+						}},
+					},
+				},
+			},
+		}
+	}
+
+	deployment.Spec.Replicas = &replicas
+	deployment.Spec.Template.Spec.Containers[0].Image = app.Spec.Image
+
+	if app.Spec.Port != 0 {
+		deployment.Spec.Template.Spec.Containers[0].Ports = []v12.ContainerPort{{
+			Name:          "http",
+			ContainerPort: int32(app.Spec.Port),
+		}}
+	}
+
+	if doCreate {
+		_ = ctrl.SetControllerReference(&app, &deployment, r.Scheme)
+		if err := r.Create(ctx, &deployment); err != nil {
+			log.Error(err, "Could not create deployment")
+			return ctrl.Result{}, err
+		}
+	} else {
+		if err := r.Update(ctx, &deployment); err != nil {
+			log.Error(err, "Could not update deployment")
+			return ctrl.Result{}, err
+		}
+	}
+
+	return ctrl.Result{}, nil
+}
+
+func (r *ApplicationReconciler) upsertService(app feistyv1alpha1.Application, req ctrl.Request, ctx context.Context) (ctrl.Result, error) {
+	log := r.Log.WithValues("application", req.NamespacedName)
+	appLabels := getAppLabels(app)
+
+	doCreate := false
+	var svc v12.Service
+	if err := r.Get(ctx, req.NamespacedName, &svc); err != nil {
+		doCreate = true
+		svc = v12.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      app.Name,
+				Namespace: app.Namespace,
+			},
+			Spec: v12.ServiceSpec{
+				Ports: []v12.ServicePort{{
+					Name:     "http",
+					Protocol: "TCP",
+					Port:     defaultExposedPort,
+					TargetPort: intstr.IntOrString{
+						IntVal: int32(app.Spec.Port),
+					},
+				}},
+				Selector: appLabels,
+				Type:     "ClusterIP",
+			},
+		}
+	}
+
+	if doCreate {
+		_ = ctrl.SetControllerReference(&app, &svc, r.Scheme)
+		if err := r.Create(ctx, &svc); err != nil {
+			log.Error(err, "Could not create svc")
+			return ctrl.Result{}, err
+		}
+	} else {
+		if err := r.Update(ctx, &svc); err != nil {
+			log.Error(err, "Could not update svc")
+			return ctrl.Result{}, err
+		}
+	}
+
+	return ctrl.Result{}, nil
+}
+
+func (r *ApplicationReconciler) upsertIngress(app feistyv1alpha1.Application, req ctrl.Request, ctx context.Context) (ctrl.Result, error) {
+	log := r.Log.WithValues("application", req.NamespacedName)
+
+	doCreate := false
+	var ingress v1beta1.Ingress
+	if err := r.Get(ctx, req.NamespacedName, &ingress); err != nil {
+		doCreate = true
+		ingress = v1beta1.Ingress{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      app.Name,
+				Namespace: app.Namespace,
+			},
+		}
+	}
+
+	// TODO: add code here to deal with default domain
+	var rules []v1beta1.IngressRule
+	domains := app.Spec.Domains
+	for _, domain := range domains {
+		rules = append(rules, v1beta1.IngressRule{
+			Host: domain.Host,
+			IngressRuleValue: v1beta1.IngressRuleValue{
+				HTTP: &v1beta1.HTTPIngressRuleValue{
+					Paths: []v1beta1.HTTPIngressPath{{
+						Path: "/",
+						Backend: v1beta1.IngressBackend{
+							ServiceName: app.Name,
+							ServicePort: intstr.IntOrString{
+								IntVal: defaultExposedPort,
+							},
+						},
+					}},
+				},
+			},
+		})
+	}
+
+	ingress.Spec.Rules = rules
+
+	if doCreate {
+		_ = ctrl.SetControllerReference(&app, &ingress, r.Scheme)
+		if err := r.Create(ctx, &ingress); err != nil {
+			log.Error(err, "Could not create ingress")
+			return ctrl.Result{}, err
+		}
+	} else {
+		if err := r.Update(ctx, &ingress); err != nil {
+			log.Error(err, "Could not update ingress")
+			return ctrl.Result{}, err
+		}
+	}
+
+	return ctrl.Result{}, nil
+}
 
 func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
@@ -50,53 +223,34 @@ func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	deploymentExist := false
 	if app.Spec.Image == "" {
 		log.Info("No deployment action taken because no image was supplied")
 		return ctrl.Result{}, nil
+	} else {
+		if res, err := r.upsertDeployment(app, req, ctx); err != nil {
+			log.Error(err, "There was an error doing deployment handling")
+			return res, err
+		} else {
+			deploymentExist = true
+		}
 	}
 
-	appLabel := map[string]string{
-		"app": app.Name,
+	svcExists := false
+	if app.Spec.Port != 0 && deploymentExist {
+		if res, err := r.upsertService(app, req, ctx); err != nil {
+			log.Error(err, "There was an error doing service handling")
+			return res, err
+		} else {
+			svcExists = true
+		}
 	}
 
-	replicas := int32(1)
-	deployment := v1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      app.Name,
-			Namespace: app.Namespace,
-		},
-		Spec: v1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: appLabel,
-			},
-			Template: v12.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:   app.Name,
-					Labels: appLabel,
-				},
-				Spec: v12.PodSpec{
-					Containers: []v12.Container{{
-						Name:  app.Name,
-						Image: app.Spec.Image,
-					}},
-				},
-			},
-		},
-	}
-
-	if app.Spec.Port != 0 {
-		deployment.Spec.Template.Spec.Containers[0].Ports = []v12.ContainerPort{{
-			Name:          "http",
-			ContainerPort: 80,
-		}}
-	}
-
-	_ = ctrl.SetControllerReference(&app, &deployment, r.Scheme)
-
-	if err := r.Create(ctx, &deployment); err != nil {
-		log.Error(err, "Could not create deployment")
-		return ctrl.Result{}, err
+	if app.Spec.RoutingEnabled && svcExists {
+		if res, err := r.upsertIngress(app, req, ctx); err != nil {
+			log.Error(err, "There was an error doing ingress handling")
+			return res, err
+		}
 	}
 
 	return ctrl.Result{}, nil

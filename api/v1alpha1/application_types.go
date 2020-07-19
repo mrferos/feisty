@@ -20,14 +20,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type ApplicationDomain struct {
+	Host              string `json:"host,omitempty"`
+	TLSCertSecretName string `json:"tlsCertSecretName,omitempty"`
+}
+
 // ApplicationSpec defines the desired state of Application
 type ApplicationSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
-	RoutingEnabled bool     `json:"routingEnabled,omitempty"`
-	Domains        []string `json:"domains,omitempty"`
-	Image          string   `json:"image,omitempty"`
-	Replicas       int      `json:"replicas,omitempty"`
-	Port           int      `json:"port,omitempty"`
+	RoutingEnabled bool                `json:"routingEnabled,omitempty"`
+	Domains        []ApplicationDomain `json:"domains,omitempty"`
+	Image          string              `json:"image,omitempty"`
+	Replicas       int                 `json:"replicas,omitempty"`
+	Port           int                 `json:"port,omitempty"`
 }
 
 // ApplicationStatus defines the observed state of Application

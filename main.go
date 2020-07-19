@@ -59,7 +59,7 @@ func main() {
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "dee32eb7.paas.fesity.dev",
+		LeaderElectionID:   "dee32eb7.paas.feisty.dev",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

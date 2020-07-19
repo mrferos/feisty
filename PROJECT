@@ -1,4 +1,4 @@
-domain: paas.fesity.dev
+domain: paas.feisty.dev
 repo: github.com/mrferos/feisty
 resources:
 - group: feisty

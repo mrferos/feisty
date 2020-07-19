@@ -3,7 +3,7 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: applications.feisty.paas.fesity.dev
+  name: applications.feisty.paas.feisty.dev
 spec:
   conversion:
     strategy: Webhook

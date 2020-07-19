@@ -36,7 +36,12 @@ spec:
           properties:
             domains:
               items:
-                type: string
+                properties:
+                  host:
+                    type: string
+                  tlsCertSecretName:
+                    type: string
+                type: object
               type: array
             image:
               type: string

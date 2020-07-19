@@ -1,7 +1,10 @@
-apiVersion: feisty.paas.fesity.dev/v1alpha1
+apiVersion: feisty.paas.feisty.dev/v1alpha1
 kind: Application
 metadata:
   name: application-sample
 spec:
+  routingEnabled: true
   image: nginxdemos/hello:plain-text
   port: 80
+  domains:
+    - host: example.foo.com
