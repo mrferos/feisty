@@ -88,12 +88,12 @@ func (r *ApplicationConfigReconciler) upsertSecret(cfg feistyv1alpha1.Applicatio
 	if doCreate {
 		_ = ctrl.SetControllerReference(&cfg, &secret, r.Scheme)
 		if err := r.Create(ctx, &secret); err != nil {
-			log.Error(err, "Could not create deployment")
+			log.Error(err, "Could not create secret")
 			return secret, err
 		}
 	} else {
 		if err := r.Update(ctx, &secret); err != nil {
-			log.Error(err, "Could not update deployment")
+			log.Error(err, "Could not update secret")
 			return secret, err
 		}
 	}
