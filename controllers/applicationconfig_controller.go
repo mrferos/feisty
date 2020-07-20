@@ -124,6 +124,7 @@ func (r *ApplicationConfigReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 		app.Spec.AppConfigRef = secret.Name
 		if err := r.Update(ctx, &app); err != nil {
 			log.Error(err, "Could not update Application with target ApplicationConfig")
+			return ctrl.Result{}, err
 		}
 	}
 
