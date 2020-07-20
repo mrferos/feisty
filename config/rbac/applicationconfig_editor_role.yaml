@@ -1,0 +1,24 @@
+# permissions for end users to edit applicationconfigs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: applicationconfig-editor-role
+rules:
+- apiGroups:
+  - feisty.paas.feisty.dev
+  resources:
+  - applicationconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - feisty.paas.feisty.dev
+  resources:
+  - applicationconfigs/status
+  verbs:
+  - get

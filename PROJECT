@@ -4,4 +4,7 @@ resources:
 - group: feisty
   kind: Application
   version: v1alpha1
+- group: feisty
+  kind: ApplicationConfig
+  version: v1alpha1
 version: "2"

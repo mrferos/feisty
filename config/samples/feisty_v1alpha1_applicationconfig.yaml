@@ -1,0 +1,12 @@
+apiVersion: feisty.paas.feisty.dev/v1alpha1
+kind: ApplicationConfig
+metadata:
+  name: application-sample
+spec:
+  # Add fields here
+  keyValuePairs:
+    HOST: cool-host
+    ANOTHER: value
+    YET: ANOTHER
+    MORE_CONFIG: this is a test
+    YES_MORE_CONFIG: test

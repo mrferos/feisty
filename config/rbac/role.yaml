@@ -9,6 +9,26 @@ rules:
 - apiGroups:
   - feisty.paas.feisty.dev
   resources:
+  - applicationconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - feisty.paas.feisty.dev
+  resources:
+  - applicationconfigs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - feisty.paas.feisty.dev
+  resources:
   - applications
   verbs:
   - create

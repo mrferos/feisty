@@ -1,0 +1,20 @@
+# permissions for end users to view applicationconfigs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: applicationconfig-viewer-role
+rules:
+- apiGroups:
+  - feisty.paas.feisty.dev
+  resources:
+  - applicationconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - feisty.paas.feisty.dev
+  resources:
+  - applicationconfigs/status
+  verbs:
+  - get

@@ -108,6 +108,16 @@ func (r *ApplicationReconciler) upsertDeployment(app feistyv1alpha1.Application,
 		}}
 	}
 
+	if app.Spec.AppConfigRef != "" {
+		deployment.Spec.Template.Spec.Containers[0].EnvFrom = []v12.EnvFromSource{{
+			SecretRef: &v12.SecretEnvSource{
+				LocalObjectReference: v12.LocalObjectReference{
+					Name: app.Spec.AppConfigRef,
+				},
+			},
+		}}
+	}
+
 	if doCreate {
 		_ = ctrl.SetControllerReference(&app, &deployment, r.Scheme)
 		if err := r.Create(ctx, &deployment); err != nil {

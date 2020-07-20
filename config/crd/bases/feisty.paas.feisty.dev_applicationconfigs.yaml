@@ -6,18 +6,18 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.5
   creationTimestamp: null
-  name: applications.feisty.paas.feisty.dev
+  name: applicationconfigs.feisty.paas.feisty.dev
 spec:
   group: feisty.paas.feisty.dev
   names:
-    kind: Application
-    listKind: ApplicationList
-    plural: applications
-    singular: application
+    kind: ApplicationConfig
+    listKind: ApplicationConfigList
+    plural: applicationconfigs
+    singular: applicationconfig
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: Application is the Schema for the applications API
+      description: ApplicationConfig is the Schema for the applicationconfigs API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -32,34 +32,15 @@ spec:
         metadata:
           type: object
         spec:
-          description: ApplicationSpec defines the desired state of Application
+          description: ApplicationConfigSpec defines the desired state of ApplicationConfig
           properties:
-            appConfigRef:
-              type: string
-            domains:
-              items:
-                properties:
-                  host:
-                    type: string
-                  tlsCertSecretName:
-                    type: string
-                type: object
-              type: array
-            image:
-              type: string
-            port:
-              type: integer
-            replicas:
-              type: integer
-            restartTime:
-              type: string
-            routingEnabled:
-              description: 'Important: Run "make" to regenerate code after modifying
-                this file'
-              type: boolean
+            keyValuePairs:
+              additionalProperties:
+                type: string
+              type: object
           type: object
         status:
-          description: ApplicationStatus defines the observed state of Application
+          description: ApplicationConfigStatus defines the observed state of ApplicationConfig
           type: object
       type: object
   version: v1alpha1
