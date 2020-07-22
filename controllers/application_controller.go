@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 	"github.com/go-logr/logr"
+	"github.com/mrferos/feisty/constants"
+	"github.com/mrferos/feisty/revisions"
 	v1 "k8s.io/api/apps/v1"
 	v12 "k8s.io/api/core/v1"
 	"k8s.io/api/networking/v1beta1"
@@ -27,14 +29,14 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	feistyv1alpha1 "github.com/mrferos/feisty/api/v1alpha1"
 )
 
 var (
-	feistyAnnotationPrefix         = "paas.feisty.dev/"
 	defaultExposedPort             = int32(80)
-	restartDeploymentAnnotationKey = feistyAnnotationPrefix + "restartTime"
+	restartDeploymentAnnotationKey = constants.FeistyAnnotationPrefix + "restart-time"
 )
 
 // ApplicationReconciler reconciles a Application object
@@ -236,6 +238,10 @@ func (r *ApplicationReconciler) upsertIngress(app feistyv1alpha1.Application, re
 func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("application", req.NamespacedName)
+	rev := revisions.Revision{
+		Client: r.Client,
+		Log:    r.Log,
+	}
 
 	var app feistyv1alpha1.Application
 	if err := r.Get(ctx, req.NamespacedName, &app); err != nil {
@@ -273,6 +279,8 @@ func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		}
 	}
 
+	_ = rev.CreateIfNeeded(req.NamespacedName, ctx)
+
 	return ctrl.Result{}, nil
 }
 
@@ -280,5 +288,8 @@ func (r *ApplicationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&feistyv1alpha1.Application{}).
 		Owns(&v1.Deployment{}).
+		WithEventFilter(predicate.Funcs{
+			UpdateFunc: revisions.RevisionWatchFilter,
+		}).
 		Complete(r)
 }

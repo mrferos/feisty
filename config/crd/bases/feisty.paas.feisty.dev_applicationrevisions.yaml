@@ -1,0 +1,137 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: applicationrevisions.feisty.paas.feisty.dev
+spec:
+  group: feisty.paas.feisty.dev
+  names:
+    kind: ApplicationRevision
+    listKind: ApplicationRevisionList
+    plural: applicationrevisions
+    singular: applicationrevision
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: ApplicationRevision is the Schema for the applicationrevisions
+        API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ApplicationRevisionSpec defines the desired state of ApplicationRevision
+          properties:
+            app:
+              description: Application is the Schema for the applications API
+              properties:
+                apiVersion:
+                  description: 'APIVersion defines the versioned schema of this representation
+                    of an object. Servers should convert recognized schemas to the
+                    latest internal value, and may reject unrecognized values. More
+                    info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                  type: string
+                kind:
+                  description: 'Kind is a string value representing the REST resource
+                    this object represents. Servers may infer this from the endpoint
+                    the client submits requests to. Cannot be updated. In CamelCase.
+                    More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                  type: string
+                metadata:
+                  type: object
+                spec:
+                  description: ApplicationSpec defines the desired state of Application
+                  properties:
+                    appConfigRef:
+                      type: string
+                    domains:
+                      items:
+                        properties:
+                          host:
+                            type: string
+                          tlsCertSecretName:
+                            type: string
+                        type: object
+                      type: array
+                    image:
+                      type: string
+                    port:
+                      type: integer
+                    replicas:
+                      type: integer
+                    restartTime:
+                      type: string
+                    routingEnabled:
+                      description: 'Important: Run "make" to regenerate code after
+                        modifying this file'
+                      type: boolean
+                  type: object
+                status:
+                  description: ApplicationStatus defines the observed state of Application
+                  type: object
+              type: object
+            appHash:
+              type: string
+            cfg:
+              description: ApplicationConfig is the Schema for the applicationconfigs
+                API
+              properties:
+                apiVersion:
+                  description: 'APIVersion defines the versioned schema of this representation
+                    of an object. Servers should convert recognized schemas to the
+                    latest internal value, and may reject unrecognized values. More
+                    info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                  type: string
+                kind:
+                  description: 'Kind is a string value representing the REST resource
+                    this object represents. Servers may infer this from the endpoint
+                    the client submits requests to. Cannot be updated. In CamelCase.
+                    More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                  type: string
+                metadata:
+                  type: object
+                spec:
+                  description: ApplicationConfigSpec defines the desired state of
+                    ApplicationConfig
+                  properties:
+                    keyValuePairs:
+                      additionalProperties:
+                        type: string
+                      type: object
+                  type: object
+                status:
+                  description: ApplicationConfigStatus defines the observed state
+                    of ApplicationConfig
+                  type: object
+              type: object
+            cfgHash:
+              type: string
+          type: object
+        status:
+          description: ApplicationRevisionStatus defines the observed state of ApplicationRevision
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

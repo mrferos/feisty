@@ -1,0 +1,7 @@
+apiVersion: feisty.paas.feisty.dev/v1alpha1
+kind: ApplicationRevision
+metadata:
+  name: applicationrevision-sample
+spec:
+  # Add fields here
+  foo: bar

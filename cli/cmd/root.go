@@ -11,7 +11,7 @@ var appName string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Short: "A Feisty CLI",
-	Long: `The Feisty CLI used to deploy and configure apps on your cluster`,
+	Long:  `The Feisty CLI used to deploy and configure apps on your cluster`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

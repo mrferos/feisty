@@ -22,13 +22,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
+	feistyv1alpha1 "github.com/mrferos/feisty/api/v1alpha1"
+	"github.com/mrferos/feisty/revisions"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	feistyv1alpha1 "github.com/mrferos/feisty/api/v1alpha1"
 )
 
 // ApplicationConfigReconciler reconciles a ApplicationConfig object
@@ -36,6 +36,11 @@ type ApplicationConfigReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+}
+
+type upsertResult struct {
+	secret  *v1.Secret
+	created bool
 }
 
 // +kubebuilder:rbac:groups=feisty.paas.feisty.dev,resources=applicationconfigs,verbs=get;list;watch;create;update;patch;delete
@@ -52,12 +57,13 @@ func (r *ApplicationConfigReconciler) getSecretId(cfg feistyv1alpha1.Application
 	return fmt.Sprintf("%x", md5bytes), nil
 }
 
-func (r *ApplicationConfigReconciler) upsertSecret(cfg feistyv1alpha1.ApplicationConfig, req ctrl.Request, ctx context.Context) (v1.Secret, error) {
+func (r *ApplicationConfigReconciler) upsertSecret(cfg feistyv1alpha1.ApplicationConfig, req ctrl.Request, ctx context.Context) (upsertResult, error) {
 	log := r.Log.WithValues("application", req.NamespacedName)
 
 	secretId, err := r.getSecretId(cfg)
+	upsertState := upsertResult{}
 	if err != nil {
-		return v1.Secret{}, err
+		return upsertState, err
 	}
 
 	secretName := cfg.Name + "-" + secretId
@@ -68,6 +74,8 @@ func (r *ApplicationConfigReconciler) upsertSecret(cfg feistyv1alpha1.Applicatio
 
 	doCreate := false
 	var secret v1.Secret
+	upsertState.secret = &secret
+
 	if err := r.Get(ctx, objKey, &secret); err != nil {
 		doCreate = true
 		secret = v1.Secret{
@@ -88,22 +96,28 @@ func (r *ApplicationConfigReconciler) upsertSecret(cfg feistyv1alpha1.Applicatio
 	if doCreate {
 		_ = ctrl.SetControllerReference(&cfg, &secret, r.Scheme)
 		if err := r.Create(ctx, &secret); err != nil {
+			upsertState.created = true
 			log.Error(err, "Could not create secret")
-			return secret, err
+			return upsertState, err
 		}
 	} else {
 		if err := r.Update(ctx, &secret); err != nil {
+			upsertState.created = false
 			log.Error(err, "Could not update secret")
-			return secret, err
+			return upsertState, err
 		}
 	}
 
-	return secret, nil
+	return upsertState, nil
 }
 
 func (r *ApplicationConfigReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("applicationconfig", req.NamespacedName)
+	rev := revisions.Revision{
+		Client: r.Client,
+		Log:    r.Log,
+	}
 
 	var cfg feistyv1alpha1.ApplicationConfig
 	if err := r.Get(ctx, req.NamespacedName, &cfg); err != nil {
@@ -111,7 +125,7 @@ func (r *ApplicationConfigReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if secret, err := r.upsertSecret(cfg, req, ctx); err != nil {
+	if upsertState, err := r.upsertSecret(cfg, req, ctx); err != nil {
 		log.Error(err, "There was an error doing secret handling")
 		return ctrl.Result{}, err
 	} else {
@@ -121,10 +135,14 @@ func (r *ApplicationConfigReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
 
-		app.Spec.AppConfigRef = secret.Name
+		app.Spec.AppConfigRef = upsertState.secret.Name
 		if err := r.Update(ctx, &app); err != nil {
 			log.Error(err, "Could not update Application with target ApplicationConfig")
 			return ctrl.Result{}, err
+		}
+
+		if upsertState.created {
+			_ = rev.CreateIfNeeded(req.NamespacedName, ctx)
 		}
 	}
 
