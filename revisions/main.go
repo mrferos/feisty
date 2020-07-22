@@ -91,8 +91,8 @@ func (r *Revision) CreateIfNeeded(appName types.NamespacedName, ctx context.Cont
 			Namespace: app.Namespace,
 		},
 		Spec: v1alpha1.ApplicationRevisionSpec{
-			App:     app,
-			Cfg:     cfg,
+			App:     app.Spec,
+			Cfg:     cfg.Spec,
 			AppHash: appHash,
 			CfgHash: cfgHash,
 		},

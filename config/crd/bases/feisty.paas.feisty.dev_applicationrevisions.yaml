@@ -36,85 +36,40 @@ spec:
           description: ApplicationRevisionSpec defines the desired state of ApplicationRevision
           properties:
             app:
-              description: Application is the Schema for the applications API
+              description: ApplicationSpec defines the desired state of Application
               properties:
-                apiVersion:
-                  description: 'APIVersion defines the versioned schema of this representation
-                    of an object. Servers should convert recognized schemas to the
-                    latest internal value, and may reject unrecognized values. More
-                    info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                appConfigRef:
                   type: string
-                kind:
-                  description: 'Kind is a string value representing the REST resource
-                    this object represents. Servers may infer this from the endpoint
-                    the client submits requests to. Cannot be updated. In CamelCase.
-                    More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                domains:
+                  items:
+                    properties:
+                      host:
+                        type: string
+                      tlsCertSecretName:
+                        type: string
+                    type: object
+                  type: array
+                image:
                   type: string
-                metadata:
-                  type: object
-                spec:
-                  description: ApplicationSpec defines the desired state of Application
-                  properties:
-                    appConfigRef:
-                      type: string
-                    domains:
-                      items:
-                        properties:
-                          host:
-                            type: string
-                          tlsCertSecretName:
-                            type: string
-                        type: object
-                      type: array
-                    image:
-                      type: string
-                    port:
-                      type: integer
-                    replicas:
-                      type: integer
-                    restartTime:
-                      type: string
-                    routingEnabled:
-                      description: 'Important: Run "make" to regenerate code after
-                        modifying this file'
-                      type: boolean
-                  type: object
-                status:
-                  description: ApplicationStatus defines the observed state of Application
-                  type: object
+                port:
+                  type: integer
+                replicas:
+                  type: integer
+                restartTime:
+                  type: string
+                routingEnabled:
+                  description: 'Important: Run "make" to regenerate code after modifying
+                    this file'
+                  type: boolean
               type: object
             appHash:
               type: string
             cfg:
-              description: ApplicationConfig is the Schema for the applicationconfigs
-                API
+              description: ApplicationConfigSpec defines the desired state of ApplicationConfig
               properties:
-                apiVersion:
-                  description: 'APIVersion defines the versioned schema of this representation
-                    of an object. Servers should convert recognized schemas to the
-                    latest internal value, and may reject unrecognized values. More
-                    info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-                  type: string
-                kind:
-                  description: 'Kind is a string value representing the REST resource
-                    this object represents. Servers may infer this from the endpoint
-                    the client submits requests to. Cannot be updated. In CamelCase.
-                    More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-                  type: string
-                metadata:
-                  type: object
-                spec:
-                  description: ApplicationConfigSpec defines the desired state of
-                    ApplicationConfig
-                  properties:
-                    keyValuePairs:
-                      additionalProperties:
-                        type: string
-                      type: object
-                  type: object
-                status:
-                  description: ApplicationConfigStatus defines the observed state
-                    of ApplicationConfig
+                keyValuePairs:
+                  additionalProperties:
+                    type: string
                   type: object
               type: object
             cfgHash:

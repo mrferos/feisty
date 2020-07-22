@@ -25,10 +25,10 @@ import (
 
 // ApplicationRevisionSpec defines the desired state of ApplicationRevision
 type ApplicationRevisionSpec struct {
-	App     Application       `json:"app,omitempty"`
-	Cfg     ApplicationConfig `json:"cfg,omitempty"`
-	AppHash string            `json:"appHash,omitempty"`
-	CfgHash string            `json:"cfgHash,omitempty"`
+	App     ApplicationSpec       `json:"app,omitempty"`
+	Cfg     ApplicationConfigSpec `json:"cfg,omitempty"`
+	AppHash string                `json:"appHash,omitempty"`
+	CfgHash string                `json:"cfgHash,omitempty"`
 }
 
 // ApplicationRevisionStatus defines the observed state of ApplicationRevision
