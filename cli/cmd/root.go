@@ -42,7 +42,7 @@ func getNamespace() string {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVarP(&appName, "app name", "a", "", "target application")
+	//rootCmd.PersistentFlags().StringVarP(&appName, "app name", "a", "", "target application")
 	rootCmd.PersistentFlags().StringVarP(&appNamespace, "namespace", "n", "", "target namespace (defaults to app name)")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.feisty.yml")
 
