@@ -12,7 +12,7 @@ import (
 func appSetCmdRun(args []string) error {
 	ns := getNamespace()
 
-	app, err := feistyClient.Applications(ns).Get(appName, v1.GetOptions{});
+	app, err := feistyClient.Applications(ns).Get(appName, v1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("could not load application %s\n%v\n", appName, err)
 
@@ -55,6 +55,8 @@ func appSetCmdRun(args []string) error {
 	if _, err := feistyClient.Applications(ns).Update(app); err != nil {
 		return fmt.Errorf("there was an error updating %s\n%v", app.Name, err)
 	}
+
+	fmt.Printf("%s in %s was updated", app.Name, app.Namespace)
 
 	return nil
 }

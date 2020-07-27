@@ -19,7 +19,7 @@ type ApplicationConfigInterface interface {
 
 type applicationConfigClient struct {
 	restClient rest.Interface
-	ns string
+	ns         string
 }
 
 func (c *applicationConfigClient) List(opts metav1.ListOptions) (*v1alpha1.ApplicationConfigList, error) {

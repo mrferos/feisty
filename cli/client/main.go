@@ -32,7 +32,6 @@ func GetFeistyClient() (*FeistyV1Alpha1Client, error) {
 		panic(err)
 	}
 
-
 	return feistyV1Alpha1, nil
 }
 

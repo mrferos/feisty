@@ -27,7 +27,7 @@ feisty apps:create cool-app
 		ns := getNamespace()
 		app := v1alpha1.Application{
 			ObjectMeta: v1.ObjectMeta{
-				Name: args[0],
+				Name:      args[0],
 				Namespace: ns,
 			},
 		}

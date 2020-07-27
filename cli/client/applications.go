@@ -20,7 +20,7 @@ type ApplicationInterface interface {
 
 type applicationClient struct {
 	restClient rest.Interface
-	ns string
+	ns         string
 }
 
 func (c *applicationClient) List(opts metav1.ListOptions) (*v1alpha1.ApplicationList, error) {
@@ -66,17 +66,18 @@ func (c *applicationClient) Create(application *v1alpha1.Application) (*v1alpha1
 func (c *applicationClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	opts.Watch = true
 	return c.restClient.
-		 Get().
-		 Namespace(c.ns).
-		 Resource(appResource).
-		 VersionedParams(&opts, scheme.ParameterCodec).
-		 Watch()
+		Get().
+		Namespace(c.ns).
+		Resource(appResource).
+		VersionedParams(&opts, scheme.ParameterCodec).
+		Watch()
 }
 
 func (c *applicationClient) Update(application *v1alpha1.Application) (*v1alpha1.Application, error) {
 	err := c.restClient.
 		Put().
 		Namespace(c.ns).
+		Name(application.Name).
 		Resource(appResource).
 		Body(application).
 		Do().
