@@ -15,6 +15,7 @@ type ApplicationConfigInterface interface {
 	Get(name string, options metav1.GetOptions) (*v1alpha1.ApplicationConfig, error)
 	Create(applicationConfig *v1alpha1.ApplicationConfig) (*v1alpha1.ApplicationConfig, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
+	Update(applicationConfig *v1alpha1.ApplicationConfig) (*v1alpha1.ApplicationConfig, error)
 }
 
 type applicationConfigClient struct {
@@ -70,4 +71,17 @@ func (c *applicationConfigClient) Watch(opts metav1.ListOptions) (watch.Interfac
 		Resource(appConfigResource).
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Watch()
+}
+
+func (c *applicationConfigClient) Update(applicationConfig *v1alpha1.ApplicationConfig) (*v1alpha1.ApplicationConfig, error) {
+	err := c.restClient.
+		Put().
+		Namespace(c.ns).
+		Name(applicationConfig.Name).
+		Resource(appConfigResource).
+		Body(applicationConfig).
+		Do().
+		Into(applicationConfig)
+
+	return applicationConfig, err
 }
