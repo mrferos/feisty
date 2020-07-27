@@ -8,7 +8,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-var appConfigResource = "application"
+var appConfigResource = "applicationconfigs"
 
 type ApplicationConfigInterface interface {
 	List(opts metav1.ListOptions) (*v1alpha1.ApplicationConfigList, error)
