@@ -15,6 +15,7 @@ type ApplicationInterface interface {
 	Get(name string, options metav1.GetOptions) (*v1alpha1.Application, error)
 	Create(application *v1alpha1.Application) (*v1alpha1.Application, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
+	Update(application *v1alpha1.Application) (*v1alpha1.Application, error)
 }
 
 type applicationClient struct {
@@ -70,4 +71,16 @@ func (c *applicationClient) Watch(opts metav1.ListOptions) (watch.Interface, err
 		 Resource(appResource).
 		 VersionedParams(&opts, scheme.ParameterCodec).
 		 Watch()
+}
+
+func (c *applicationClient) Update(application *v1alpha1.Application) (*v1alpha1.Application, error) {
+	err := c.restClient.
+		Put().
+		Namespace(c.ns).
+		Resource(appResource).
+		Body(application).
+		Do().
+		Into(application)
+
+	return application, err
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"strings"
 )
 
 var cfgFile string
@@ -18,6 +19,24 @@ var rootCmd = &cobra.Command{
 	Short: "A Feisty CLI",
 	Long:  `The Feisty CLI used to deploy and configure apps on your cluster`,
 }
+
+func parseArgs(args []string) (map[string]string, error) {
+	var parsedArgs = map[string]string{}
+	for _, arg := range args {
+		i := strings.Index(arg, "=")
+		if i == -1 {
+			return parsedArgs, fmt.Errorf("could not parse arg %s, missing =", arg)
+		}
+
+		runeArg := []rune(arg)
+		key := string(runeArg[0:i])
+		val := string(runeArg[i+1:])
+		parsedArgs[key] = val
+	}
+
+	return parsedArgs, nil
+}
+
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -42,7 +61,6 @@ func getNamespace() string {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	//rootCmd.PersistentFlags().StringVarP(&appName, "app name", "a", "", "target application")
 	rootCmd.PersistentFlags().StringVarP(&appNamespace, "namespace", "n", "", "target namespace (defaults to app name)")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.feisty.yml")
 
